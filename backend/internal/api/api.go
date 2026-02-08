@@ -136,6 +136,18 @@ func GetUnpaidOrders(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": orders})
 }
 
+// GetPaidOrders 获取所有已支付的订单历史
+func GetPaidOrders(c *gin.Context) {
+	var orders []model.Order
+	// 查询 status 为 "Paid" 的记录，并按时间倒序排列（最新的在最上面）
+	if err := database.DB.Where("status = ?", "Paid").Order("created_at desc").Find(&orders).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "无法获取历史记录"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"orders": orders})
+}
+
 type PaymentRequest struct {
 	OrderID uint `json:"order_id"`
 }

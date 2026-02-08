@@ -68,8 +68,9 @@ func main() {
 		payment := dash.Group("/payment")
 		payment.Use(middleware.RoleMiddleware("general_user", "finance", "org_admin", "global_admin"))
 		{
-			payment.GET("/", api.GetUnpaidOrders) // 列表：显示所有 Unpaid 订单
-			payment.POST("/", api.ConfirmPayment) // 操作：点击“确认收费”
+			payment.GET("/", api.GetUnpaidOrders)      // 列表：显示所有 Unpaid 订单
+			payment.POST("/", api.ConfirmPayment)      // 操作：点击“确认收费”
+			payment.GET("/history", api.GetPaidOrders) // 查缴费历史
 		}
 
 		// [Group 3] 医生工作台 (/doctor)

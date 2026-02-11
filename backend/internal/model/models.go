@@ -10,14 +10,15 @@ import (
 
 // User 用户表
 type User struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	Username  string         `gorm:"unique;not null" json:"username"`
-	Password  string         `gorm:"not null" json:"-"`    // 不参与 JSON 序列化
-	Role      string         `gorm:"not null" json:"role"` // global_admin, org_admin, finance, storekeeper, registration, general_user
-	OrgID     uint           `json:"org_id"`               // 所属机构ID
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	ID         uint           `gorm:"primaryKey" json:"id"`
+	Username   string         `gorm:"unique;not null" json:"username"`
+	Password   string         `gorm:"not null" json:"-"`    // 不参与 JSON 序列化
+	Role       string         `gorm:"not null" json:"role"` // global_admin, org_admin, finance, storekeeper, registration, general_user
+	OrgID      uint           `json:"org_id"`               // 所属机构ID
+	Department string         `json:"department"`
+	CreatedAt  time.Time      `json:"created_at"`
+	UpdatedAt  time.Time      `json:"updated_at"`
+	DeletedAt  gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
 // Medicine 药品表 (物资管理核心)

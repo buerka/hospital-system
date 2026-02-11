@@ -7,7 +7,7 @@ const { TextArea } = Input;
 
 const Doctor = () => {
   const [patients, setPatients] = useState([]);
-  const [medicines, setMedicines] = useState([]); // 🔥 新增：存储从仓库获取的真实药品
+  const [medicines, setMedicines] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPatient, setCurrentPatient] = useState(null);
   const [form] = Form.useForm();
@@ -15,18 +15,18 @@ const Doctor = () => {
   // 1. 获取候诊列表 (Status = Pending)
   const fetchPatients = async () => {
     try {
-      const res = await request.get('/dashboard/doctor/patients'); // [cite: 186]
-      setPatients(res.data || []); // [cite: 187]
+      const res = await request.get('/dashboard/doctor/patients');
+      setPatients(res.data || []);
     } catch (error) {
       console.error(error);
       message.error('获取候诊列表失败');
     }
   };
 
-  // 2. 🔥 新增：获取库存药品列表 (实现联动)
+  // 2. 新增：获取库存药品列表 (实现联动)
   const fetchMedicines = async () => {
     try {
-      // 复用仓库接口获取实时库存 [cite: 262]
+      // 复用仓库接口获取实时库存
       const res = await request.get('/dashboard/storehouse');
       setMedicines(res.data || []);
     } catch (error) {
@@ -60,10 +60,10 @@ const Doctor = () => {
         medicine_id: values.medicine_id,
         quantity: values.quantity
       });
-      message.success('诊疗完成！已发送至收费处'); // [cite: 192]
+      message.success('诊疗完成！已发送至收费处');
       setIsModalOpen(false);
       form.resetFields();
-      fetchPatients(); // 刷新列表，已完成的患者会消失 [cite: 192]
+      fetchPatients(); // 刷新列表，已完成的患者会消失
     } catch (error) {
       const errorMsg = error.response?.data?.error || '提交失败';
       message.error(errorMsg);
@@ -104,11 +104,10 @@ const Doctor = () => {
             <TextArea rows={4} placeholder="请录入症状描述与初步诊断结果..." />
           </Form.Item>
 
-          {/* 🔥 核心修改：动态渲染来自仓库的药品 */}
           <Form.Item name="medicine_id" label="开具处方药" rules={[{ required: true }]}>
             <Select
               placeholder="请选择药品"
-              // 🔥 将 medicines 数组转换为 options 数组
+              // 将 medicines 数组转换为 options 数组
               options={medicines.map(med => ({
                 label: `${med.name} (单价: ¥${med.price.toFixed(2)} | 库存: ${med.stock})`,
                 value: med.id,

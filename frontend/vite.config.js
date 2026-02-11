@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const configPath = path.resolve(__dirname, '../config.yaml')
+const configPath = path.resolve(__dirname, './config.yaml')
 let backendPort = 8080 
 
 try {
@@ -19,7 +19,7 @@ try {
     console.log(`[Vite] 成功从 config.yaml 读取后端端口: ${backendPort}`)
   }
 } catch (e) {
-  console.error('[Vite] 读取 config.yaml 失败，使用默认端口 8080', e)
+  console.error('[Vite] 未读取到 config.yaml 使用默认端口 8080', e)
 }
 
 export default defineConfig({

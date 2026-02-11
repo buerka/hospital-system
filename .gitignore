@@ -2,8 +2,8 @@
 # 绝对不要把数据库文件和上传的图片提交到仓库(暂时上传测试数据，便于测试)
 # /storage/
 # *.db
-# *.db-wal
-# *.db-shm
+*.db-wal
+*.db-shm
 
 # --- 前端 (React/Vite) 忽略项 ---
 frontend/node_modules/
@@ -44,4 +44,3 @@ project_context.txt
 *.sw?
 # 常见的系统临时文件
 Thumbs.db
-

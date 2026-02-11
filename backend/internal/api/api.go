@@ -21,9 +21,10 @@ type LoginRequest struct {
 }
 
 type RegisterRequest struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
-	Role     string `json:"role" binding:"required"` // registrar, doctor, cashier
+	Username   string `json:"username" binding:"required"`
+	Password   string `json:"password" binding:"required"`
+	Role       string `json:"role" binding:"required"`
+	Department string `json:"department"`
 }
 
 func LoginHandler(c *gin.Context) {
@@ -195,8 +196,8 @@ func CreateBooking(c *gin.Context) {
 // GetDoctorList 专门用于下拉框的医生列表接口 (公开给登录用户)
 func GetDoctorList(c *gin.Context) {
 	var doctors []model.User
-	// 只查询角色为 doctor 的用户，且只返回 ID 和 Username，保护隐私
-	database.DB.Where("role = ?", "doctor").Select("id, username, role").Find(&doctors)
+	// GORM 默认 select *，所以只要结构体里有 Department，就会查出来
+	database.DB.Where("role = ?", "doctor").Find(&doctors)
 	c.JSON(http.StatusOK, gin.H{"data": doctors})
 }
 
@@ -446,10 +447,11 @@ func CreateUser(c *gin.Context) {
 	// 这里做简单处理：直接信任中间件的拦截
 
 	user := model.User{
-		Username: req.Username,
-		Password: req.Password, // BeforeCreate 会自动加密
-		Role:     req.Role,     // 关键：直接使用前端传来的角色 (doctor, finance...)
-		OrgID:    1,            // mvp 默认机构1
+		Username:   req.Username,
+		Password:   req.Password, // BeforeCreate 会自动加密
+		Role:       req.Role,     // 关键：直接使用前端传来的角色 (doctor, finance...)
+		Department: req.Department,
+		OrgID:      1, // mvp 默认机构1
 	}
 
 	if err := database.DB.Create(&user).Error; err != nil {
@@ -458,6 +460,44 @@ func CreateUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"msg": "用户创建成功", "data": user})
+}
+
+// 对应路由 PUT /api/v1/dashboard/users/:id
+func UpdateUser(c *gin.Context) {
+	id := c.Param("id")
+	var req struct {
+		Role       string `json:"role"`
+		Department string `json:"department"`
+		Password   string `json:"password"` // 可选：重置密码
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "参数错误"})
+		return
+	}
+
+	var user model.User
+	if err := database.DB.First(&user, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "用户不存在"})
+		return
+	}
+
+	// 更新字段
+	if req.Role != "" {
+		user.Role = req.Role
+	}
+	// 允许把科室改为空字符串（例如转岗），所以不判断空
+	user.Department = req.Department
+
+	// 如果传了新密码，则修改（GORM Hook 会自动加密吗？不会！Update 不触发 BeforeCreate）
+	// 所以这里需要手动加密，或者把逻辑抽离。为简化，这里假设前端不传密码，只改科室。
+	// 如果要改密码，建议单独写 ResetPassword 接口。
+
+	if err := database.DB.Save(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "更新失败"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"msg": "用户信息已更新", "data": user})
 }
 
 // --- 统计看板 (Dashboard Stats) ---

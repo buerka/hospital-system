@@ -14,8 +14,7 @@ import (
 
 func main() {
 	// 1. 加载配置
-	// 假设我们在 backend/ 目录下运行，config.yaml 在上一级
-	if err := config.LoadConfig("../config.yaml"); err != nil {
+	if err := config.LoadConfig("./config.yaml"); err != nil {
 		log.Fatalf("无法加载配置文件: %v", err)
 	}
 

@@ -49,9 +49,9 @@ function App() {
             </ProtectedRoute>
           } />
 
-          {/* === 财务模块 (收银台) === */}
+          {/* === payment === */}
           <Route path="payment" element={
-            <ProtectedRoute allowedRoles={['general_user', 'finance', 'org_admin', 'global_admin']}>
+            <ProtectedRoute allowedRoles={['general_user', 'registration', 'org_admin', 'global_admin']}>
               <Payment />
             </ProtectedRoute>
           } />

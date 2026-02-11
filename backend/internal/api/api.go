@@ -204,23 +204,73 @@ func GetDoctorList(c *gin.Context) {
 // --- 财务业务 (Finance/Payment) ---
 // 对应页面：/payment
 
-func GetUnpaidOrders(c *gin.Context) {
-	var orders []model.Order
-	// 查找所有状态为 Unpaid 的订单
-	database.DB.Where("status = ?", "Unpaid").Find(&orders)
-	c.JSON(http.StatusOK, gin.H{"data": orders})
+// 定义一个返回给前端的复合结构体，包含订单信息和患者姓名
+type OrderWithPatient struct {
+	model.Order
+	PatientName string `json:"patient_name"`
 }
 
-// GetPaidOrders 获取所有已支付的订单历史
-func GetPaidOrders(c *gin.Context) {
-	var orders []model.Order
-	// 查询 status 为 "Paid" 的记录，并按时间倒序排列（最新的在最上面）
-	if err := database.DB.Where("status = ?", "Paid").Order("created_at desc").Find(&orders).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "无法获取历史记录"})
+// GetUnpaidOrders 获取待缴费订单
+func GetUnpaidOrders(c *gin.Context) {
+	role := c.GetString("role")
+	userID := c.GetUint("user_id")
+
+	var results []OrderWithPatient
+
+	// 构建基础查询：连接 orders 和 bookings 表
+	// 这样我们就能拿到 bookings.patient_name
+	db := database.DB.Table("orders").
+		Select("orders.*, bookings.patient_name").
+		Joins("JOIN bookings ON bookings.id = orders.booking_id").
+		Where("orders.status = ?", "Unpaid").
+		Order("orders.created_at desc")
+
+	// 权限判断
+	if role == "general_user" {
+		// 1. 如果是普通用户，只能查 Booking.PatientName == 当前用户名
+		var currentUser model.User
+		if err := database.DB.First(&currentUser, userID).Error; err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "用户身份异常"})
+			return
+		}
+		// 核心过滤：只看自己的名字
+		db = db.Where("bookings.patient_name = ?", currentUser.Username)
+	}
+	// 2. 如果是 registration/finance/admin，不加额外 Where 条件，即查询所有
+
+	if err := db.Scan(&results).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取订单失败"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"orders": orders})
+	c.JSON(http.StatusOK, gin.H{"data": results})
+}
+
+// GetPaidOrders 获取历史记录
+func GetPaidOrders(c *gin.Context) {
+	role := c.GetString("role")
+	userID := c.GetUint("user_id")
+
+	var results []OrderWithPatient
+
+	db := database.DB.Table("orders").
+		Select("orders.*, bookings.patient_name").
+		Joins("JOIN bookings ON bookings.id = orders.booking_id").
+		Where("orders.status = ?", "Paid").
+		Order("orders.updated_at desc") // 按支付时间倒序
+
+	if role == "general_user" {
+		var currentUser model.User
+		database.DB.First(&currentUser, userID)
+		db = db.Where("bookings.patient_name = ?", currentUser.Username)
+	}
+
+	if err := db.Scan(&results).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取历史失败"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": results})
 }
 
 type PaymentRequest struct {

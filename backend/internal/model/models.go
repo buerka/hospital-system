@@ -69,6 +69,7 @@ type Order struct {
 	MedicineID  uint      `json:"medicine_id"` // 简化：关联一个主要药品用于扣库存
 	Quantity    int       `json:"quantity"`
 	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 // GeneratePassword 给密码加密

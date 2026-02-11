@@ -1,6 +1,6 @@
 import {
     Home, UserPlus, Stethoscope, CreditCard,
-    Package, FileText, Settings, History // 👈 1. 新增：这里加了一个 History 图标
+    Package, FileText, Settings, History
 } from 'lucide-react';
 import { ROLES } from './roles';
 
@@ -28,8 +28,7 @@ export const menuConfig = [
         path: 'payment',
         label: '缴费中心',
         icon: <CreditCard size={18} />,
-        // 注意：如果你只想让财务看收银台，可以去掉 GENERAL_USER
-        roles: [ROLES.GENERAL_USER, ROLES.FINANCE] 
+        roles: [ROLES.GENERAL_USER, ROLES.REGISTRATION] 
     },
     // ===============
     {

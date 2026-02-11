@@ -86,10 +86,9 @@ func main() {
 		}
 
 		// [Group 2] 缴费业务 (/payment)
-		// 权限: 财务 (cashier), 管理员 (admin)
 		// 对应图中: /payment -> 缴费入口
 		payment := dash.Group("/payment")
-		payment.Use(middleware.RoleMiddleware("general_user", "finance", "org_admin", "global_admin"))
+		payment.Use(middleware.RoleMiddleware("general_user", "registration", "finance", "org_admin", "global_admin"))
 		{
 			payment.GET("/", api.GetUnpaidOrders)      // 列表：显示所有 Unpaid 订单
 			payment.POST("/", api.ConfirmPayment)      // 操作：点击“确认收费”

@@ -1,12 +1,13 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Card, Table, Tag, Button, message, Statistic, Row, Col, Tabs, Input, Space } from 'antd';
-import { 
-  DollarOutlined, 
-  ReloadOutlined, 
-  AccountBookOutlined, 
-  HistoryOutlined, 
+import {
+  DollarOutlined,
+  ReloadOutlined,
+  AccountBookOutlined,
+  HistoryOutlined,
   SearchOutlined,
-  UserOutlined 
+  UserOutlined,
+  MedicineBoxOutlined
 } from '@ant-design/icons';
 import request from '../../utils/request';
 
@@ -32,7 +33,7 @@ const Payment = () => {
         // 获取历史记录
         res = await request.get('/dashboard/payment/history');
       }
-      
+
       // 兼容后端返回格式 (可能是 {data: []} 或 {orders: []})
       const list = res.data || res.orders || [];
       setData(list);
@@ -72,31 +73,50 @@ const Payment = () => {
 
   // === 5. 表格列定义 ===
   const columns = [
-    { 
-      title: '订单号', 
-      dataIndex: 'id', 
-      key: 'id', 
+    {
+      title: '订单号',
+      dataIndex: 'id',
+      key: 'id',
       width: 80,
       render: (text) => <span style={{ color: '#999' }}>#{text}</span>
     },
-    { 
-      title: '患者姓名', 
-      dataIndex: 'patient_name', 
+    {
+      title: '患者姓名',
+      dataIndex: 'patient_name',
       key: 'patient_name',
       render: (text) => (
         <Space>
-          <UserOutlined /> 
+          <UserOutlined />
           <span style={{ fontWeight: 'bold', color: '#1890ff' }}>{text || '未知'}</span>
         </Space>
       )
     },
-    { 
-      title: '应收金额', 
-      dataIndex: 'total_amount', 
+    {
+      title: '处方内容 (药品 x 数量)',
+      key: 'medicine',
+      render: (_, record) => (
+        // 使用原生 div 实现垂直排列，避免 "direction" 弃用警告
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          {/* 药品名称 */}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <Tag color="cyan" icon={<MedicineBoxOutlined />}>
+              {record.medicine_name || '未知药品'}
+            </Tag>
+          </div>
+          {/* 价格数量 */}
+          <span style={{ fontSize: '12px', color: '#888', paddingLeft: 4 }}>
+            单价: ¥{record.medicine_price} × {record.quantity}
+          </span>
+        </div>
+      )
+    },
+    {
+      title: '应收总额',
+      dataIndex: 'total_amount',
       key: 'total_amount',
       render: (val) => (
-        <span style={{ 
-          color: activeTab === 'unpaid' ? '#cf1322' : '#389e0d', 
+        <span style={{
+          color: activeTab === 'unpaid' ? '#cf1322' : '#389e0d',
           fontWeight: 'bold',
           fontSize: '16px'
         }}>
@@ -104,9 +124,9 @@ const Payment = () => {
         </span>
       )
     },
-    { 
-      title: '状态', 
-      dataIndex: 'status', 
+    {
+      title: '状态',
+      dataIndex: 'status',
       key: 'status',
       render: (status) => (
         <Tag color={status === 'Unpaid' ? 'orange' : 'green'}>
@@ -114,9 +134,9 @@ const Payment = () => {
         </Tag>
       )
     },
-    { 
-      title: '创建时间', 
-      dataIndex: 'created_at', 
+    {
+      title: '创建时间',
+      dataIndex: 'created_at',
       key: 'created_at',
       render: (text) => new Date(text).toLocaleString()
     },
@@ -128,8 +148,8 @@ const Payment = () => {
       title: '操作',
       key: 'action',
       render: (_, record) => (
-        <Button 
-          type="primary" 
+        <Button
+          type="primary"
           size="small"
           icon={<DollarOutlined />}
           onClick={() => handleConfirm(record.id)}
@@ -155,27 +175,27 @@ const Payment = () => {
       <Row gutter={16} style={{ marginBottom: '16px' }}>
         <Col span={8}>
           <Card size="small">
-            <Statistic 
+            <Statistic
               title={activeTab === 'unpaid' ? "当前待处理总额" : "历史已收总额"}
               value={totalAmount}
               precision={2}
               prefix={<DollarOutlined />}
-              // 🔥 修复: 使用 formatter 代替 valueStyle，或者直接给 div 样式
+              // 修复: 使用 formatter 代替 valueStyle，或者直接给 div 样式
               formatter={(value) => <span style={{ color: activeTab === 'unpaid' ? '#cf1322' : '#389e0d' }}>{value}</span>}
             />
           </Card>
         </Col>
       </Row>
 
-      <Card 
+      <Card
         title={userRole === 'general_user' ? "💰 我的缴费单" : "🏥 医院收银台"}
         extra={
           <Space>
             {/* 搜索框：方便挂号员查找 */}
-            <Input 
-              prefix={<SearchOutlined />} 
-              placeholder="搜索姓名或订单号" 
-              onChange={e => setSearchText(e.target.value)} 
+            <Input
+              prefix={<SearchOutlined />}
+              placeholder="搜索姓名或订单号"
+              onChange={e => setSearchText(e.target.value)}
               style={{ width: 200 }}
               allowClear
             />
@@ -183,18 +203,18 @@ const Payment = () => {
           </Space>
         }
       >
-        <Tabs 
-          activeKey={activeTab} 
-          onChange={setActiveTab} 
-          items={tabItems} 
+        <Tabs
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          items={tabItems}
         />
-        
-        <Table 
-          rowKey="id" 
-          dataSource={filteredData} 
-          columns={columns} 
+
+        <Table
+          rowKey="id"
+          dataSource={filteredData}
+          columns={columns}
           loading={loading}
-          pagination={{ pageSize: 6 }} 
+          pagination={{ pageSize: 6 }}
         />
       </Card>
     </div>

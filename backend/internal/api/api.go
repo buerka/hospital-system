@@ -201,13 +201,15 @@ func GetDoctorList(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": doctors})
 }
 
-// --- 财务业务 (Finance/Payment) ---
+// --- Payment ---
 // 对应页面：/payment
 
-// 定义一个返回给前端的复合结构体，包含订单信息和患者姓名
-type OrderWithPatient struct {
+// 1. 定义返回结构体
+type OrderDetail struct {
 	model.Order
-	PatientName string `json:"patient_name"`
+	PatientName   string  `json:"patient_name"`
+	MedicineName  string  `json:"medicine_name"`  // 新增：药名
+	MedicinePrice float64 `json:"medicine_price"` // 新增：单价
 }
 
 // GetUnpaidOrders 获取待缴费订单
@@ -215,13 +217,14 @@ func GetUnpaidOrders(c *gin.Context) {
 	role := c.GetString("role")
 	userID := c.GetUint("user_id")
 
-	var results []OrderWithPatient
+	var results []OrderDetail
 
-	// 构建基础查询：连接 orders 和 bookings 表
-	// 这样我们就能拿到 bookings.patient_name
+	// 2. 连表查询 (Orders + Bookings + Medicines)
+	// 使用 LEFT JOIN medicines，防止如果药品被删除了导致订单查不出来
 	db := database.DB.Table("orders").
-		Select("orders.*, bookings.patient_name").
+		Select("orders.*, bookings.patient_name, medicines.name as medicine_name, medicines.price as medicine_price").
 		Joins("JOIN bookings ON bookings.id = orders.booking_id").
+		Joins("LEFT JOIN medicines ON medicines.id = orders.medicine_id").
 		Where("orders.status = ?", "Unpaid").
 		Order("orders.created_at desc")
 
@@ -251,11 +254,13 @@ func GetPaidOrders(c *gin.Context) {
 	role := c.GetString("role")
 	userID := c.GetUint("user_id")
 
-	var results []OrderWithPatient
+	var results []OrderDetail
 
+	// 同样的连表逻辑
 	db := database.DB.Table("orders").
-		Select("orders.*, bookings.patient_name").
+		Select("orders.*, bookings.patient_name, medicines.name as medicine_name, medicines.price as medicine_price").
 		Joins("JOIN bookings ON bookings.id = orders.booking_id").
+		Joins("LEFT JOIN medicines ON medicines.id = orders.medicine_id").
 		Where("orders.status = ?", "Paid").
 		Order("orders.updated_at desc") // 按支付时间倒序
 

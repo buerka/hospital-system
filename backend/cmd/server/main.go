@@ -94,8 +94,15 @@ func main() {
 			payment.GET("/history", api.GetPaidOrders) // 查缴费历史
 		}
 
-		// [Group 3] 医生工作台 (/doctor)
-		// 权限: 医生 (doctor), 管理员 (admin)
+		// [Group 3] 财务分析 (/finance)
+		finance := dash.Group("/finance")
+		finance.Use(middleware.RoleMiddleware("finance", "org_admin", "global_admin"))
+		{
+			finance.GET("/stats", api.GetFinanceStats)     // 核心指标
+			finance.GET("/dept_stats", api.GetDeptRevenue) // 科室排名
+		}
+
+		// [Group 4] 医生工作台 (/doctor)
 		// 对应图中: /doctor -> 医生专用面板
 		doctor := dash.Group("/doctor")
 		doctor.Use(middleware.RoleMiddleware("doctor", "org_admin", "global_admin"))
@@ -104,8 +111,7 @@ func main() {
 			doctor.POST("/medical_records", api.SubmitMedicalRecord) // 右侧：提交诊断 -> 生成订单
 		}
 
-		// [Group 4] 病历 (/medical_record)
-		// 权限: 医生, 挂号员, 财务 (不同角色视角不同，此处简化为都有权查看)
+		// [Group 5] 病历 (/medical_record)
 		// 对应图中: /medical_record -> 展示问诊记录
 		medical_record := dash.Group("/medical_record")
 		medical_record.Use(middleware.RoleMiddleware("general_user", "doctor", "registration", "finance", "org_admin", "global_admin"))
@@ -113,8 +119,7 @@ func main() {
 			medical_record.GET("/", api.GetMedicalRecords)
 		}
 
-		// [Group 5] 物资/库房 (/storehouse)
-		// 权限: 库管 (storekeeper), 管理员 (admin)
+		// [Group 6] 物资/库房 (/storehouse)
 		// 对应图中: /storehouse -> 物资管理
 		store := dash.Group("/storehouse")
 		{
@@ -124,7 +129,7 @@ func main() {
 			store.POST("/", middleware.RoleMiddleware("storekeeper", "org_admin", "global_admin"), api.AddMedicine)
 		}
 
-		// [Group 6] 用户管理 (/users)
+		// [Group 7] 用户管理 (/users)
 		// 权限: 仅限管理员
 		// 对应图中: /users -> 统一管理账号
 		admin := dash.Group("/users")

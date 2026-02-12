@@ -201,7 +201,7 @@ func GetDoctorList(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": doctors})
 }
 
-// --- Payment ---
+// --- 支付业务 ---
 // 对应页面：/payment
 
 // 1. 定义返回结构体
@@ -330,6 +330,59 @@ func ConfirmPayment(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"msg": "支付成功，库存已更新"})
 }
 
+// --- 财务分析业务 (Finance Analytics) ---
+// 对应页面：/finance
+
+// 1. 财务概览数据
+func GetFinanceStats(c *gin.Context) {
+	// A. 总收入
+	var totalIncome float64
+	database.DB.Model(&model.Order{}).Where("status = ?", "Paid").Select("sum(total_amount)").Row().Scan(&totalIncome)
+
+	// B. 今日收入 (SQLite date函数写法)
+	var todayIncome float64
+	database.DB.Model(&model.Order{}).
+		Where("status = ? AND date(created_at) = date('now')", "Paid").
+		Select("sum(total_amount)").Row().Scan(&todayIncome)
+
+	// C. 订单总数
+	var orderCount int64
+	database.DB.Model(&model.Order{}).Where("status = ?", "Paid").Count(&orderCount)
+
+	c.JSON(http.StatusOK, gin.H{
+		"total_income": totalIncome,
+		"today_income": todayIncome,
+		"order_count":  orderCount,
+		// 简单计算客单价
+		"avg_transaction": func() float64 {
+			if orderCount > 0 {
+				return totalIncome / float64(orderCount)
+			}
+			return 0
+		}(),
+	})
+}
+
+// 2. 科室营收排名 (连表查询：Orders -> Bookings)
+type DeptRevenue struct {
+	Department string  `json:"department"`
+	Total      float64 `json:"total"`
+}
+
+func GetDeptRevenue(c *gin.Context) {
+	var results []DeptRevenue
+	// SQL: SELECT b.department, SUM(o.total_amount) as total FROM orders o JOIN bookings b ON o.booking_id = b.id WHERE o.status='Paid' GROUP BY b.department
+	database.DB.Table("orders").
+		Select("bookings.department, sum(orders.total_amount) as total").
+		Joins("JOIN bookings ON bookings.id = orders.booking_id").
+		Where("orders.status = ?", "Paid").
+		Group("bookings.department").
+		Order("total desc").
+		Scan(&results)
+
+	c.JSON(http.StatusOK, gin.H{"data": results})
+}
+
 // --- 医生业务 (Doctor) ---
 // 对应页面：/doctor
 
@@ -450,7 +503,7 @@ func AddMedicine(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"msg": "添加药品成功", "data": med})
 }
 
-// --- 记录 (medical_record) ---
+// --- 医疗记录 (medical_record) ---
 // 对应页面：/medical_record
 
 // 定义返回结构，方便前端显示医生名字和患者名字

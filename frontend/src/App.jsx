@@ -1,9 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import ProtectedRoute from './components/ProtectedRoute'; 
+import ProtectedRoute from './components/ProtectedRoute';
 import DashboardLayout from './layouts/DashboardLayout';
 
 // 公开页面组件
-import Home from './pages/Home'; 
+import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 
@@ -11,6 +11,7 @@ import Register from './pages/Register';
 import Overview from './pages/dashboard/Overview';
 import Bookings from './pages/dashboard/Bookings';
 import Payment from './pages/dashboard/Payment';
+import Finance from './pages/dashboard/Finance';
 import Medical_record from './pages/dashboard/Medical_record';
 import Doctor from './pages/dashboard/Doctor';
 import Storehouse from './pages/dashboard/Storehouse';
@@ -49,10 +50,17 @@ function App() {
             </ProtectedRoute>
           } />
 
-          {/* === payment === */}
+          {/* === 支付模块 === */}
           <Route path="payment" element={
             <ProtectedRoute allowedRoles={['general_user', 'registration', 'org_admin', 'global_admin']}>
               <Payment />
+            </ProtectedRoute>
+          } />
+
+          {/* === 财务模块 === */}
+          <Route path="finance" element={
+            <ProtectedRoute allowedRoles={['finance', 'org_admin', 'global_admin']}>
+              <Finance />
             </ProtectedRoute>
           } />
 

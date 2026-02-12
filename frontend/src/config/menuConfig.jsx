@@ -1,6 +1,6 @@
 import {
     Home, UserPlus, Stethoscope, CreditCard,
-    Package, FileText, Settings, History
+    Package, FileText, Settings, LineChart
 } from 'lucide-react';
 import { ROLES } from './roles';
 
@@ -23,14 +23,18 @@ export const menuConfig = [
         icon: <Stethoscope size={18} />,
         roles: [ROLES.DOCTOR]
     },
-    // === 财务模块 ===
     {
         path: 'payment',
         label: '缴费中心',
         icon: <CreditCard size={18} />,
-        roles: [ROLES.GENERAL_USER, ROLES.REGISTRATION] 
+        roles: [ROLES.GENERAL_USER, ROLES.REGISTRATION]
     },
-    // ===============
+    {
+        path: 'finance',
+        label: '财务分析',
+        icon: <LineChart size={18} />,
+        roles: [ROLES.FINANCE, ROLES.ORG_ADMIN, ROLES.GLOBAL_ADMIN]
+    },
     {
         path: 'storehouse',
         label: '物资库房',

@@ -63,7 +63,9 @@ func main() {
 	{
 		auth.POST("/login", api.LoginHandler)       // 登录获取 Token
 		auth.POST("/register", api.RegisterHandler) // 用户注册 (仅供演示或初始管理员用)
+		auth.GET("/hospital/images", api.GetHospitalImages) //图片信息
 	}
+	 
 
 	// 2. 受保护接口组 (Dashboard)
 	// 所有 /api/v1/dashboard 下的请求都需要 JWT 认证

@@ -742,13 +742,13 @@ func GetDashboardStats(c *gin.Context) {
 	})
 }
 
-// --- 医院图片信息模块 --- 
+// --- 医院图片信息模块 ---
 func GetHospitalImages(c *gin.Context) {
-    c.JSON(http.StatusOK, gin.H{
-        "data": []gin.H{
-            {"id": 1, "url": "/uploads/hospital/lobby.jpg", "title": "门诊大厅"},
-            {"id": 2, "url": "/uploads/hospital/clinic.jpg", "title": "专家诊室"},
-            {"id": 3, "url": "/uploads/hospital/rehab.jpg", "title": "康复中心"},
-        },
-    })
+	c.JSON(http.StatusOK, gin.H{
+		"data": []gin.H{
+			{"id": 1, "url": "/uploads/hospital/lobby.jpg", "title": "门诊大厅"},
+			{"id": 2, "url": "/uploads/hospital/clinic.jpg", "title": "专家诊室"},
+			{"id": 3, "url": "/uploads/hospital/rehab.jpg", "title": "康复中心"},
+		},
+	})
 }

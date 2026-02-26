@@ -61,8 +61,9 @@ func main() {
 	// 对应图中: /login, /register
 	auth := r.Group("/api/v1")
 	{
-		auth.POST("/login", api.LoginHandler)       // 登录获取 Token
-		auth.POST("/register", api.RegisterHandler) // 用户注册 (仅供演示或初始管理员用)
+		auth.POST("/login", api.LoginHandler)               // 登录获取 Token
+		auth.POST("/register", api.RegisterHandler)         // 用户注册 (仅供演示或初始管理员用)
+		auth.GET("/hospital/images", api.GetHospitalImages) //图片信息
 	}
 
 	// 2. 受保护接口组 (Dashboard)

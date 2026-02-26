@@ -31,7 +31,7 @@ const Home = () => {
                     <Title level={4} style={{ margin: 0 }}>智慧医疗系统</Title>
                 </div>
                 <Space>
-                    <Button type="text" onClick={() => navigate('/login')}>关于我们</Button>
+                    <Button type="text" onClick={() => navigate('/about')}>关于我们</Button>
                     <Button type="text" onClick={() => navigate('/experts')}>专家团队</Button>
                     <Button type="primary" onClick={() => navigate('/login')}>登录</Button>
                     <Button onClick={() => navigate('/register')}>注册</Button>

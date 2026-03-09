@@ -22,7 +22,8 @@ request.interceptors.response.use(
         return response.data;
     },
     (err) => {
-        if (err.response?.status === 401) {
+        const isLoginRequest = err.config?.url?.includes("/login");
+        if (err.response?.status === 401 && !isLoginRequest) {
             localStorage.clear(); // 清理所有用户信息
             window.location.href = "/login";
         }
